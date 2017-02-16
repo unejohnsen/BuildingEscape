@@ -11,9 +11,6 @@ UOpenDoor::UOpenDoor()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	
-	
-
 }
 
 
@@ -22,12 +19,19 @@ void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
 	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 	
 }
 
+void UOpenDoor::OpenDoor()
+{
+	Owner->SetActorRotation(FRotator(0.0f, OpenAngle, 0.0f));
+}
 
+void UOpenDoor::CloseDoor()
+{
+	Owner->SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
+}
 
 // Called every frame
 void UOpenDoor::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -36,20 +40,20 @@ void UOpenDoor::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompo
 
 	// Poll the Trigger Volume 
 	// If the ActorThatOpens is in the volume
-	if(PressurePLate->IsOverlappingActor(ActorThatOpens))
-	{
-		OpenDoor();
+	if (PressurePLate)
+	{ 
+		if(PressurePLate->IsOverlappingActor(ActorThatOpens))
+		{
+			OpenDoor();
+			LastDoorOpenTime = GetWorld()->GetTimeSeconds();
+		}	
+	
+	
+	//Check if its time to close the door.
+		if((GetWorld()->GetTimeSeconds() - LastDoorOpenTime) > DoorCloseDelay)
+		{
+			CloseDoor();
+		}
 	}
 }
 
-void UOpenDoor::OpenDoor()
-{
-	//Find the owning actor
-	AActor* Owner = GetOwner();
-
-	// Create a rotator
-	FRotator NewRotation = FRotator(0.0f, -60.0f, 0.0f);
-
-	// Set the door rotation
-	Owner->SetActorRotation(NewRotation);
-}
